@@ -131,9 +131,11 @@ __interrupt void port1(void) {
 
 #pragma vector = ADC10_VECTOR
 void adc10_interrupt(void){
-	int adc10_data = ADC10MEM;
-	duty_circle = adc10_data % 60 + 20; //20%~80%
-	ADC10CTL &= ~ADC10IFG;
+	if(ADC10IFG & ADC10CTL0 == ADC10IFG){
+		int adc10_data = ADC10MEM;
+		duty_circle = adc10_data % 60 + 20; //20%~80%
+		ADC10CTL0 &= ~ADC10IFG;
+	}
 
 }
 
@@ -200,9 +202,6 @@ void init_ADC10(void){
 	ADC10CTL1 |= CONSEQ_2; //repeate-Single-channel-mode
 
 	ADC10AE0  = ADC10_IN_PORT;
-
-//	ADC10DTC1  = 1;//DTC enable for interrupt
-//	ADC10DTC0 &= ~ADC10CT; //non continous mode
 
 	ADC10CTL0 |= ENC + ADC10SC + MSC; //start repeated convertion
 }
