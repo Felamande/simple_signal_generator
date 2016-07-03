@@ -110,9 +110,6 @@ __interrupt void port1(void) {
 			ccr0_idx = 0;
 		}
 		tccr0_now = ccr0_table[ccr0_idx];
-
-		TA0CCR0 = tccr0_now;
-
 	}
 	if (test_key& BIT2) {
 		//调节频率减小
@@ -145,7 +142,7 @@ void init_vars() {
 	point_now = 0;
 
 	ccr0_idx = 0;
-	tccr0_now = ccr0_table[0];
+	tccr0_now = ccr0_table[50];
 
 }
 
@@ -186,7 +183,7 @@ void init_port_io(void) {
 void init_port_interrupt(void) {
 
 	P1IES |= P1_INTERRUPT; //置1，下降沿触发
-	P1IE |= P1_INTERRUPT;  //中断使能
+	P1IE  |= P1_INTERRUPT;  //中断使能
 	P1IFG &= ~P1_INTERRUPT; //清除标志位
 }
 
