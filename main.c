@@ -1,7 +1,8 @@
 #include <msp430.h>
 
-#define P1_IN_PORTS           ~(BIT0 + BIT1 + BIT2 +       BIT4) //0:switch wave, 1:add freq, 2:sub freq, 4:adc10 in
-#define P1_OUT_PORTS                                 (BIT3)      //3:DAC WR
+#define ADC10_IN_PORT          (BIT4)
+#define P1_IN_PORTS           ~(BIT0 + BIT1 + BIT2 + ADC10_IN_PORT) //0:switch wave, 1:add freq, 2:sub freq, 4:adc10 in
+#define P1_OUT_PORTS           (BIT3)      //3:DAC WR
 #define P1_INTERRUPT           (BIT0 + BIT1 + BIT2)
 #define P2_OUT_PORTS           (0xff) //DAC data in
 #define TOTAL_SAMPLING_POINTS  200
@@ -11,16 +12,19 @@
 #define CPU_FREQ               ((double)16000000) //CPU frequency set to 16M(CALBC_16MHZ)
 #define delay_us(x)            __delay_cycles((long)(CPU_FREQ*(double)x/1000000.0))
 #define delay_ms(x)            __delay_cycles((long)(CPU_FREQ*(double)x/1000.0))
+#define write_dac(data)        P2OUT = data //write to DAC
+#define ENABLE_ADC_CONVERTION  ADC10CTL0 |= ENC + ADC10SC
+#define DISABLE_ADC_CONVERTION ADC10CTL0 &= ~(ENC + ADC10SC)
 #define uchar                  unsigned char
 #define uint                   unsigned int
 
-//long signal_type_incr;
+
 uint  curr_signal_type;
 int   tccr0_now;
 uint  ccr0_idx;
 uchar point_now;
 int test_key;
-uint adc10_A0_data[10];
+int duty_circle;
 
 const int ccr0_table[MAX_FREQ_STEPS] = { 16000, 8000, 5333, 4000, 3200, 2666,
 		2285, 2000, 1777, 1600, 1454, 1333, 1230, 1142, 1066, 1000, 941, 888,
@@ -51,11 +55,6 @@ const uchar tria_data[TOTAL_SAMPLING_POINTS] = {
 		252, 249, 247, 244, 242, 239, 237, 234, 232, 229, 226, 224, 221, 219, 216, 214, 211, 209, 206, 204, 201, 198, 196, 193, 191, 188, 186, 183, 181, 178, 175, 173, 170, 168, 165, 163, 160, 158, 155, 153, 150, 147, 145, 142, 140, 137, 135, 132, 130, 127, 124, 122, 119, 117, 114, 112, 109, 107, 104, 102, 99, 96, 94, 91, 89, 86, 84, 81, 79, 76, 73, 71, 68, 66, 63, 61, 58, 56, 53, 51, 48, 45, 43, 40, 38, 35, 33, 30, 28, 25, 22, 20, 17, 15, 12, 10, 7, 5, 2, 0
 };
 
-const uchar box_data[TOTAL_SAMPLING_POINTS] = {
-		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-		 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void timer_A0(void) {
 	if (point_now >= TOTAL_SAMPLING_POINTS) {
@@ -65,15 +64,19 @@ __interrupt void timer_A0(void) {
 	switch (curr_signal_type) {
 	case 0:
 		//sin;
-		P1OUT = sin_data[point_now];
+		write_dac(sin_data[point_now]);
 		break;
 	case 1:
 		//triangle
-		P1OUT = tria_data[point_now];
+		write_dac(tria_data[point_now]);
 		break;
 	case 2:
 		//box
-		P1OUT = box_data[point_now];
+		if(point_now < duty_circle){
+			write_dac(0xff);
+		}else{
+			write_dac(0x00);
+		}
 
 		break;
 	}
@@ -87,7 +90,6 @@ __interrupt void timer_A0(void) {
 
 #pragma vector = PORT1_VECTOR
 __interrupt void port1(void) {
-//	_DINT();
 	//消除抖动，延迟0.1s
 	delay_ms(100);
 
@@ -123,40 +125,35 @@ __interrupt void port1(void) {
 
 	}
 
-	P1IFG &= P1_IN_PORTS; //清除标志位
-//	_EINT();
+	P1IFG &= ~P1_INTERRUPT; //清除标志位
 
 }
 
-//#pragma vector = ADC10_VECTOR
-//void adc10_interrupt(void){
-//	ADC10CTL0 &= ~ENC;
-//	while(ADC10CTL1&BUSY);
-//	ADC10CTL0 = ENC + ADC10SC;
-//	ADC10SA = (uint)adc10_data;
-//
-//
-//}
+#pragma vector = ADC10_VECTOR
+void adc10_interrupt(void){
+	int adc10_data = ADC10MEM;
+	duty_circle = adc10_data % 60 + 20; //20%~80%
+	ADC10CTL &= ~ADC10IFG;
 
-//void init_signal_generator(void) {
-//	func_now = signal_func_map[0];
-//	//初始产生正弦波
-//}
+}
+
 
 void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
 
 	ccr0_idx = 0;
-	tccr0_now = ccr0_table[0]; //
+	tccr0_now = ccr0_table[0];
 
 }
 
 void init_DCO() {
 	BCSCTL1 = CALBC1_16MHZ;
 	DCOCTL = CALDCO_16MHZ;
+
 	BCSCTL2 = SELM_1 + DIVM_0;
 	// select DCO as the source of MCLK
+
 	BCSCTL2 &= ~SELS;
 	// select DCO as the source of SMCLK
 
@@ -192,22 +189,22 @@ void init_port_interrupt(void) {
 }
 
 void init_ADC10(void){
+
 	ADC10CTL0 |= ADC10IE;
-	ADC10DTC1  = 1;//DTC enable for interrupt
-	ADC10DTC0 &= ~ADC10CT; //non continous mode
+	ADC10CTL0 |= ADC10ON + REFON + REF2_5V + SREF_1 + ADC10SHT_2;
 
-	ADC10CTL0 |= ADC10ON + REFON + REF2_5V + SREF_1 + ADC10SHT_3 + ADC10IE;
-
+	ADC10CTL1 |= INCH_4;//A4 channel for convertion, P1.4 in
+	ADC10CTL1 |= SHS_0;
 	ADC10CTL1 |= ADC10SSEL_3 + ADC10DIV_7;//SMCLK source and DIV/8 2MHz
 	ADC10CTL1 &= ~ADC10DF; //straght binary format
-	ADC10CTL1 |= SHS_0;
-	ADC10CTL1 |= CONSEQ_0;
+	ADC10CTL1 |= CONSEQ_2; //repeate-Single-channel-mode
 
-	ADC10CTL1 |= INCH_12;
-	ADC10AE0   = 0x00;//disable A0-7
-//	ADC10AE1  |= BIT4;
+	ADC10AE0  = ADC10_IN_PORT;
 
-//	ADC10CTL0 |= ENC;
+//	ADC10DTC1  = 1;//DTC enable for interrupt
+//	ADC10DTC0 &= ~ADC10CT; //non continous mode
+
+	ADC10CTL0 |= ENC + ADC10SC + MSC; //start repeated convertion
 }
 
 //void test_port() {
@@ -231,13 +228,7 @@ void main(void) {
 	init_DCO();
 	init_timer_A0();
 	init_port_interrupt();
-//	test_port();
 	_bis_SR_register(GIE);
-	P1OUT = 0x00;
-	while (1) {
-//		P1OUT = 0xf0;
-//		LPM0;
-//		__delay_cycles(500);
-	}
-//	return 0;
+
+	while (1);
 }
