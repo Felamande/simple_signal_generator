@@ -2,40 +2,34 @@
 
 #define P2_IN_PORTS           ~(BIT0 + BIT1 + BIT2)
 #define P2_INTERRUPT           (BIT0 + BIT1 + BIT2)
+#define P2_OUT_PORTS           (BIT3)
 #define P1_OUT_PORTS           (0xff)
 #define TOTAL_SAMPLING_POINTS  200
 #define MAX_FREQ_STEPS         100
-#define ENABLE_WR_PORT         P2OUT |= BIT3
-#define DISABLE_WR_PORT        P2OUT &= ~BIT3
-//#define MAX_FREQ               500
-//#define MIN_FREQ               5
-#define FORWARD                1
-#define BACKWARD              -1
+#define ENABLE_WR_PORT         P2OUT &= ~BIT3
+#define DISABLE_WR_PORT        P2OUT |= BIT3
+#define CPU_FREQ               ((double)16000000) //CPU frequency set to 16M(CALBC_16MHZ)
+#define delay_us(x)            __delay_cycles((long)(CPU_FREQ*(double)x/1000000.0))
+#define delay_ms(x)            __delay_cycles((long)(CPU_FREQ*(double)x/1000.0))
 #define uchar                  unsigned char
-#define CPU_FREQ ((double)16000000) //CPU frequency set to 16M(CALBC_16MHZ)
-#define delay_us(x) __delay_cycles((long)(CPU_FREQ*(double)x/1000000.0))
-#define delay_ms(x) __delay_cycles((long)(CPU_FREQ*(double)x/1000.0))
+#define uint                   unsigned int
 
 //long signal_type_incr;
-unsigned int curr_signal_type;
-int tccr0_now;
-unsigned int ccr0_idx;
-unsigned char point_now;
+uint  curr_signal_type;
+int   tccr0_now;
+uint  ccr0_idx;
+uchar point_now;
+int test_key;
+uint adc10_A0_data[10];
 
-int sin_sampling_points;
-int triangle_rising_edge_sampling_points;
-int triangle_falling_edge_sampling_points;
-int box_highlevel_sampling_points;
-int box_lowlevel_sampling_points;
-
-const int ccr0_table[MAX_FREQ_STEPS] = {12500, 6250, 4166, 3125, 2500, 2083,
-	1785, 1562, 1388, 1250, 1136, 1041, 961, 892, 833, 781, 735, 694, 657,
-	625, 595, 568, 543, 520, 500, 480, 462, 446, 431, 416, 403, 390, 378,
-	367, 357, 347, 337, 32\8, 320, 312, 304, 297, 290, 284, 277, 271, 265,
-	260, 255, 250, 245, 240, 235, 231, 227, 223, 219, 215, 211, 208, 204,
-	201, 198, 195, 192, 189, 186, 183, 181, 178, 176, 173, 171, 168, 166,
-	164, 162, 160, 158, 156, 154, 152, 150, 148, 147, 145, 143, 142, 140,
-	138, 137, 135, 134, 132, 131, 130, 128, 127, 126, 125};
+const int ccr0_table[MAX_FREQ_STEPS] = { 16000, 8000, 5333, 4000, 3200, 2666,
+		2285, 2000, 1777, 1600, 1454, 1333, 1230, 1142, 1066, 1000, 941, 888,
+		842, 800, 761, 727, 695, 666, 640, 615, 592, 571, 551, 533, 516, 500,
+		484, 470, 457, 444, 432, 421, 410, 400, 390, 380, 372, 363, 355, 347,
+		340, 333, 326, 320, 313, 307, 301, 296, 290, 285, 280, 275, 271, 266,
+		262, 258, 253, 250, 246, 242, 238, 235, 231, 228, 225, 222, 219, 216,
+		213, 210, 207, 205, 202, 200, 197, 195, 192, 190, 188, 186, 183, 181,
+		179, 177, 175, 173, 172, 170, 168, 166, 164, 163, 161, 160 };
 
 const unsigned char sin_data[TOTAL_SAMPLING_POINTS] = { 127, 131, 135, 139, 143,
 		147, 151, 155, 159, 162, 166, 170, 174, 177, 181, 185, 188, 192, 195,
@@ -52,6 +46,16 @@ const unsigned char sin_data[TOTAL_SAMPLING_POINTS] = { 127, 131, 135, 139, 143,
 		52, 56, 59, 62, 66, 69, 73, 77, 80, 84, 88, 92, 95, 99, 103, 107, 111,
 		115, 119, 123 };
 
+const uchar tria_data[TOTAL_SAMPLING_POINTS] = {
+		0, 2, 5, 7, 10, 12, 15, 17, 20, 22, 25, 28, 30, 33, 35, 38, 40, 43, 45, 48, 51, 53, 56, 58, 61, 63, 66, 68, 71, 73, 76, 79, 81, 84, 86, 89, 91, 94, 96, 99, 102, 104, 107, 109, 112, 114, 117, 119, 122, 124, 127, 130, 132, 135, 137, 140, 142, 145, 147, 150, 153, 155, 158, 160, 163, 165, 168, 170, 173, 175, 178, 181, 183, 186, 188, 191, 193, 196, 198, 201, 204, 206, 209, 211, 214, 216, 219, 221, 224, 226, 229, 232, 234, 237, 239, 242, 244, 247, 249, 252,
+		252, 249, 247, 244, 242, 239, 237, 234, 232, 229, 226, 224, 221, 219, 216, 214, 211, 209, 206, 204, 201, 198, 196, 193, 191, 188, 186, 183, 181, 178, 175, 173, 170, 168, 165, 163, 160, 158, 155, 153, 150, 147, 145, 142, 140, 137, 135, 132, 130, 127, 124, 122, 119, 117, 114, 112, 109, 107, 104, 102, 99, 96, 94, 91, 89, 86, 84, 81, 79, 76, 73, 71, 68, 66, 63, 61, 58, 56, 53, 51, 48, 45, 43, 40, 38, 35, 33, 30, 28, 25, 22, 20, 17, 15, 12, 10, 7, 5, 2, 0
+};
+
+const uchar box_data[TOTAL_SAMPLING_POINTS] = {
+		255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+		 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void timer_A0(void) {
 	if (point_now >= TOTAL_SAMPLING_POINTS) {
@@ -65,41 +69,39 @@ __interrupt void timer_A0(void) {
 		break;
 	case 1:
 		//triangle
-		if (point_now < triangle_rising_edge_sampling_points) {
-			P1OUT = (uchar) (point_now);
-		} else {
-			P1OUT = (uchar) (TOTAL_SAMPLING_POINTS - point_now - 1);
-		}
+		P1OUT = tria_data[point_now];
 		break;
 	case 2:
 		//box
-		if (point_now < box_highlevel_sampling_points) {
-			P1OUT = (uchar) (1);
-		} else {
-			P1OUT = (uchar) (0);
-		}
+		P1OUT = box_data[point_now];
 
 		break;
 	}
+	ENABLE_WR_PORT;
+	delay_us(1);
+	DISABLE_WR_PORT;`
+
 	point_now++;
 	TA0CCR0 += tccr0_now;
 }
 
 #pragma vector = PORT2_VECTOR
 __interrupt void port2(void) {
-	_DINT();
+//	_DINT();
 	//消除抖动，延迟0.1s
 	delay_ms(100);
-	if (P1OUT & BIT0) {
+
+	test_key = P2IFG;
+//	test_key = test_key & BIT1;
+	if (test_key& BIT0) {
 		//调节波形
-//		signal_type_incr++;
 		curr_signal_type++;
 		if (curr_signal_type >= 3) {
 			curr_signal_type = 0;
 		}
-		point_now = 0;
-		return;
-	} else if (P1OUT & BIT1) {
+//		point_now = 0;
+	}
+	if (test_key & BIT1) {
 		//调节频率增加
 		ccr0_idx++;
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
@@ -109,23 +111,32 @@ __interrupt void port2(void) {
 
 		TA0CCR0 = tccr0_now;
 
-	} else if (P1OUT & BIT2) {
+	}
+	if (test_key& BIT2) {
 		//调节频率减小
 		ccr0_idx--;
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
-			ccr0_idx = 0;
+			ccr0_idx = 99;
 		}
 
 		tccr0_now = ccr0_table[ccr0_idx];
 
-		TA0CCR0 = tccr0_now;
-
 	}
 
 	P2IFG &= P2_IN_PORTS; //清除标志位
-	_EINT();
+//	_EINT();
 
 }
+
+//#pragma vector = ADC10_VECTOR
+//void adc10_interrupt(void){
+//	ADC10CTL0 &= ~ENC;
+//	while(ADC10CTL1&BUSY);
+//	ADC10CTL0 = ENC + ADC10SC;
+//	ADC10SA = (uint)adc10_data;
+//
+//
+//}
 
 //void init_signal_generator(void) {
 //	func_now = signal_func_map[0];
@@ -133,21 +144,11 @@ __interrupt void port2(void) {
 //}
 
 void init_vars() {
-	sin_sampling_points = TOTAL_SAMPLING_POINTS;
-
-	triangle_rising_edge_sampling_points = TOTAL_SAMPLING_POINTS / 2;
-	triangle_falling_edge_sampling_points = TOTAL_SAMPLING_POINTS
-			- triangle_rising_edge_sampling_points;
-
-	box_highlevel_sampling_points = TOTAL_SAMPLING_POINTS / 2;
-	box_lowlevel_sampling_points = TOTAL_SAMPLING_POINTS
-			- box_highlevel_sampling_points;
-
 	curr_signal_type = 0;
 	point_now = 0;
 
 	ccr0_idx = 0;
-	tccr0_now = 80; //ccr0_table[0];
+	tccr0_now = ccr0_table[0]; //
 
 }
 
@@ -157,7 +158,7 @@ void init_DCO() {
 	BCSCTL2 = SELM_1 + DIVM_0;
 	// select DCO as the source of MCLK
 	BCSCTL2 &= ~SELS;
-	// select DCO as the source of  SMCLK
+	// select DCO as the source of SMCLK
 
 }
 
@@ -176,6 +177,7 @@ void init_port_io(void) {
 	P1SEL2 = 0x00;
 
 	P2DIR &= P2_IN_PORTS; //P2.0 P2.1 p2.2 in
+	P2DIR |= P2_OUT_PORTS;//P2.3 for DAC WR
 	P2REN = 0x00;
 	P2SEL = 0x00;
 	P2SEL2 = 0x00;
@@ -189,18 +191,37 @@ void init_port_interrupt(void) {
 	P2IFG &= ~P2_INTERRUPT; //清除标志位
 }
 
-void test_port() {
-	_DINT();
-	init_port_io();
-	P1OUT = 0x00;
-	while (1) {
-		P1OUT = 0xff;
+void init_ADC10(void){
+	ADC10CTL0 |= ADC10IE;
+	ADC10DTC1  = 1;//DTC enable for interrupt
+	ADC10DTC0 &= ~ADC10CT; //non continous mode
+
+	ADC10CTL0 |= ADC10ON + REFON + REF2_5V + SREF_1 + ADC10SHT_3 + ADC10IE;
+
+	ADC10CTL1 |= ADC10SSEL_3 + ADC10DIV_7;//SMCLK source and DIV/8 2MHz
+	ADC10CTL1 &= ~ADC10DF; //straght binary format
+	ADC10CTL1 |= SHS_0;
+	ADC10CTL1 |= CONSEQ_0;
+
+	ADC10CTL1 |= INCH_12;
+	ADC10AE0   = 0x00;//disable A0-7
+//	ADC10AE1  |= BIT4;
+
+//	ADC10CTL0 |= ENC;
+}
+
+//void test_port() {
+//	_DINT();
+//	init_port_io();
+//	P1OUT = 0x00;
+//	while (1) {
+//		P1OUT = 0xff;
 //		P1OUT = 0x00;
 //		delay_ms(1000);
 //		P1OUT = 0xff;
 //		delay_ms(1000);
-	}
-}
+//	}
+//}
 
 void main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
@@ -211,7 +232,7 @@ void main(void) {
 	init_timer_A0();
 	init_port_interrupt();
 //	test_port();
-
+	_bis_SR_register(GIE);
 	P1OUT = 0x00;
 	while (1) {
 //		P1OUT = 0xf0;
