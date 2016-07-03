@@ -1,13 +1,13 @@
 #include <msp430.h>
 
-#define P2_IN_PORTS           ~(BIT0 + BIT1 + BIT2)
-#define P2_INTERRUPT           (BIT0 + BIT1 + BIT2)
-#define P2_OUT_PORTS           (BIT3)
-#define P1_OUT_PORTS           (0xff)
+#define P1_IN_PORTS           ~(BIT0 + BIT1 + BIT2 +       BIT4) //0:switch wave, 1:add freq, 2:sub freq, 4:adc10 in
+#define P1_OUT_PORTS                                 (BIT3)      //3:DAC WR
+#define P1_INTERRUPT           (BIT0 + BIT1 + BIT2)
+#define P2_OUT_PORTS           (0xff) //DAC data in
 #define TOTAL_SAMPLING_POINTS  200
 #define MAX_FREQ_STEPS         100
-#define ENABLE_WR_PORT         P2OUT &= ~BIT3
-#define DISABLE_WR_PORT        P2OUT |= BIT3
+#define ENABLE_WR_PORT         P1OUT &= ~BIT3 //WR->0
+#define DISABLE_WR_PORT        P1OUT |= BIT3  //WR->1
 #define CPU_FREQ               ((double)16000000) //CPU frequency set to 16M(CALBC_16MHZ)
 #define delay_us(x)            __delay_cycles((long)(CPU_FREQ*(double)x/1000000.0))
 #define delay_ms(x)            __delay_cycles((long)(CPU_FREQ*(double)x/1000.0))
@@ -79,19 +79,19 @@ __interrupt void timer_A0(void) {
 	}
 	ENABLE_WR_PORT;
 	delay_us(1);
-	DISABLE_WR_PORT;`
+	DISABLE_WR_PORT;
 
 	point_now++;
 	TA0CCR0 += tccr0_now;
 }
 
-#pragma vector = PORT2_VECTOR
-__interrupt void port2(void) {
+#pragma vector = PORT1_VECTOR
+__interrupt void port1(void) {
 //	_DINT();
 	//消除抖动，延迟0.1s
 	delay_ms(100);
 
-	test_key = P2IFG;
+	test_key = P1IFG;
 //	test_key = test_key & BIT1;
 	if (test_key& BIT0) {
 		//调节波形
@@ -123,7 +123,7 @@ __interrupt void port2(void) {
 
 	}
 
-	P2IFG &= P2_IN_PORTS; //清除标志位
+	P1IFG &= P1_IN_PORTS; //清除标志位
 //	_EINT();
 
 }
@@ -171,24 +171,24 @@ void init_timer_A0(void) {
 
 //
 void init_port_io(void) {
-	P1DIR = P1_OUT_PORTS; //P1 11111111b all out
-	P1REN = 0x00; //disable pull/down resistor
-	P1SEL = 0x00; //io function is selected
-	P1SEL2 = 0x00;
-
-	P2DIR &= P2_IN_PORTS; //P2.0 P2.1 p2.2 in
-	P2DIR |= P2_OUT_PORTS;//P2.3 for DAC WR
-	P2REN = 0x00;
-	P2SEL = 0x00;
+	P2DIR = P2_OUT_PORTS; //P2 11111111b all out
+	P2REN = 0x00; //disable pull/down resistor
+	P2SEL = 0x00; //io function is selected
 	P2SEL2 = 0x00;
+
+	P1DIR &= P1_IN_PORTS; //P1.0 P1.1 p1.2 p1.4 in
+	P1DIR |= P1_OUT_PORTS;//P1.3 for DAC WR
+	P1REN = 0x00;
+	P1SEL = 0x00;
+	P1SEL2 = 0x00;
 	//TODO:设置DAC模式(单缓冲) P2REN的值
 }
 
 void init_port_interrupt(void) {
 
-	P2IES |= P2_INTERRUPT; //置1，下降沿触发
-	P2IE |= P2_INTERRUPT;  //中断使能
-	P2IFG &= ~P2_INTERRUPT; //清除标志位
+	P1IES |= P1_INTERRUPT; //置1，下降沿触发
+	P1IE |= P1_INTERRUPT;  //中断使能
+	P1IFG &= ~P1_INTERRUPT; //清除标志位
 }
 
 void init_ADC10(void){
