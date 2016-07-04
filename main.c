@@ -79,7 +79,7 @@ __interrupt void timer_A0(void) {
 	}
 	ENABLE_WR_PORT;
 	delay_us(1);
-	DISABLE_WR_PORT;`
+	DISABLE_WR_PORT;
 
 	point_now++;
 	TA0CCR0 += tccr0_now;
