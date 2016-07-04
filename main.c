@@ -68,6 +68,7 @@ const uchar tria_data[TOTAL_SAMPLING_POINTS] = { 0, 2, 5, 7, 10, 12, 15, 17, 20,
 
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void timer_A0(void) {
+//	P1OUT  |= (P1OUT^BIT6)&BIT6
 	if (point_now >= TOTAL_SAMPLING_POINTS) {
 		point_now = 0;
 	}
@@ -136,21 +137,25 @@ __interrupt void port1(void) {
 
 }
 
-#pragma vector = ADC10_VECTOR
-void adc10_interrupt(void) {
-	if (ADC10IFG & ADC10CTL0) {
-		int adc10_data = ADC10MEM;
-		duty_circle = (adc10_data >> 4) + 20; // 20 ~ 84(1024/16+20)
-		ADC10CTL0 &= ~ADC10IFG;
-	}
-}
+//#pragma vector = ADC10_VECTOR
+//void adc10_interrupt(void) {
+//	if (ADC10IFG & ADC10CTL0) {
+//
+//		int adc10_data = ADC10MEM;
+//		duty_circle = (adc10_data >> 3) + 50; // 50 ~ 178(1024/8+50)
+//		ADC10CTL0 &= ~ADC10IFG;
+//
+//	}
+//}
 
 void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
 
-	ccr0_idx = 50;
+	ccr0_idx = 0;
 	tccr0_now = ccr0_table[ccr0_idx];
+
+	duty_circle = 100;
 
 }
 
@@ -173,7 +178,6 @@ void init_timer_A0(void) {
 	_EINT();
 }
 
-//
 void init_port_io(void) {
 	P2DIR = P2_OUT_PORTS; //P2 11111111b all out
 	P2REN = 0x00; //disable pull/down resistor
@@ -198,21 +202,22 @@ void init_ADC10(void) {
 
 	ADC10CTL1 |= INCH_4; //A4 channel for convertion, P1.4 in
 	ADC10CTL1 |= SHS_0;
-	ADC10CTL1 |= ADC10SSEL_3 + ADC10DIV_7; //SMCLK source and DIV/8 -> 2MHz
-	ADC10CTL1 &= ~ADC10DF; //straght binary format
-	ADC10CTL1 |= CONSEQ_2; //repeat-Single-channel-mode
+	ADC10CTL1 |= ADC10SSEL_0; // MCLK/8 source and DIV/8 -> 125KHz
+	ADC10CTL1 &= ~ADC10DF; // straght binary format
+	ADC10CTL1 |= CONSEQ_2; // repeat-Single-channel-mode
 
 	ADC10AE0 = ADC10_IN_PORT;
 
 	ADC10CTL0 |= ADC10IE; //enable interrupt
-	ADC10CTL0 |= SREF_0 + ADC10SHT_2; //V+ = Vcc, V- = Vss
+	ADC10CTL0 |= SREF_1 + ADC10SHT_2 + REF2_5V + REFON; //V+ = Vre(2.5V), V- = Vss
 	ADC10CTL0 |= MSC; //further sample and conversions are performed automatically
 					  //as soon as the prior conversion is completed
 	ADC10CTL0 &= ~REFOUT;			          // diasable refout to p1.3 p1.4
-	ADC10CTL0 &= ~REFON;			          //disable internal ref voltage
 	ADC10CTL0 |= ADC10ON; //enable adc
 	ADC10CTL0 |= ENC + ADC10SC;  //start repeated convertion
 }
+
+
 
 void main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
@@ -222,6 +227,8 @@ void main(void) {
 	init_DCO();
 	init_timer_A0();
 	init_port_interrupt();
+//	init_ADC10();
+
 	_bis_SR_register(GIE);
 
 	while (1) {
