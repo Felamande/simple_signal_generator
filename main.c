@@ -143,7 +143,6 @@ void adc10_interrupt(void) {
 		duty_circle = (adc10_data >> 4) + 20; // 20 ~ 84(1024/16+20)
 		ADC10CTL0 &= ~ADC10IFG;
 	}
-
 }
 
 void init_vars() {
