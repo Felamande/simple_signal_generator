@@ -137,17 +137,6 @@ __interrupt void port1(void) {
 
 }
 
-//#pragma vector = ADC10_VECTOR
-//void adc10_interrupt(void) {
-//	if (ADC10IFG & ADC10CTL0) {
-//
-//		int adc10_data = ADC10MEM;
-//		duty_circle = (adc10_data >> 3) + 50; // 50 ~ 178(1024/8+50)
-//		ADC10CTL0 &= ~ADC10IFG;
-//
-//	}
-//}
-
 void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
@@ -234,13 +223,13 @@ void main(void) {
 	while (1) {
 		_NOP();
 		if(ADC10CTL1&ADC10BUSY)continue;
-		ADC10CTL0 |= ENC
-		ADC10CTL0 |= ADC10SC
-		__delay_circles(2)
-		ADC10CTL0 &= ~ADC10SC
-		__delay_cycles(20)
+		ADC10CTL0 |= ENC;
+		ADC10CTL0 |= ADC10SC;
+		__delay_cycles(2);
+		ADC10CTL0 &= ~ADC10SC;
+		__delay_cycles(20);
 		int adc_data = ADC10MEM;
-		duty_delay = (adc_data >> 3) + 50
+		duty_circle = (adc_data >> 3) + 50;
 
 	}
 }
