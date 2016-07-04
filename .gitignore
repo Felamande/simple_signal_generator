@@ -1,0 +1,7 @@
+.ccproject
+.cproject
+.project
+*.cmd
+.launches
+.settings
+Debug
