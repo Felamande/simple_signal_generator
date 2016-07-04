@@ -72,7 +72,6 @@ __interrupt void timer_A0(void) {
 	case 2:
 		//box
 		P1OUT = box_data[point_now];
-
 		break;
 	}
 	ENABLE_WR_PORT;
