@@ -202,19 +202,19 @@ void init_ADC10(void) {
 
 	ADC10CTL1 |= INCH_4; //A4 channel for convertion, P1.4 in
 	ADC10CTL1 |= SHS_0;
-	ADC10CTL1 |= ADC10SSEL_0; // MCLK/8 source and DIV/8 -> 125KHz
+	ADC10CTL1 |= ADC10SSEL_3;//SMCLK 16M
 	ADC10CTL1 &= ~ADC10DF; // straght binary format
-	ADC10CTL1 |= CONSEQ_2; // repeat-Single-channel-mode
+	ADC10CTL1 |= CONSEQ_0; // Single channel single convertion
 
 	ADC10AE0 = ADC10_IN_PORT;
 
-	ADC10CTL0 |= ADC10IE; //enable interrupt
-	ADC10CTL0 |= SREF_1 + ADC10SHT_2 + REF2_5V + REFON; //V+ = Vre(2.5V), V- = Vss
+	ADC10CTL0 &= ~ADC10IE; //disable interrupt
+	ADC10CTL0 |= SREF_1 + ADC10SHT_0 + REF2_5V + REFON; //V+ = 2.5V, V- = Vss = 0
 	ADC10CTL0 |= MSC; //further sample and conversions are performed automatically
 					  //as soon as the prior conversion is completed
 	ADC10CTL0 &= ~REFOUT;			          // diasable refout to p1.3 p1.4
 	ADC10CTL0 |= ADC10ON; //enable adc
-	ADC10CTL0 |= ENC + ADC10SC;  //start repeated convertion
+//	ADC10CTL0 |= ENC + ADC10SC;  //start repeated convertion
 }
 
 
@@ -232,6 +232,11 @@ void main(void) {
 	_bis_SR_register(GIE);
 
 	while (1) {
+		if(ADC10CTL1&ADC10BUSY)continue;
+		ADC10CTL0 |= ENC + ADC10SC
+		__delay_cycles(20)
+		int adc_data = ADC10MEM;
+		duty_delay = (adc_data >> 3) + 50
 
 	}
 }
