@@ -19,8 +19,7 @@ uint  curr_signal_type;
 int   tccr0_now;
 uint  ccr0_idx;
 uchar point_now;
-int test_key;
-uint adc10_A0_data[10];
+int   test_key;
 
 const int ccr0_table[MAX_FREQ_STEPS] = { 16000, 8000, 5333, 4000, 3200, 2666,
 		2285, 2000, 1777, 1600, 1454, 1333, 1230, 1142, 1066, 1000, 941, 888,
@@ -87,7 +86,7 @@ __interrupt void timer_A0(void) {
 
 #pragma vector = PORT2_VECTOR
 __interrupt void port2(void) {
-//	_DINT();
+
 	//消除抖动，延迟0.1s
 	delay_ms(100);
 
@@ -119,24 +118,9 @@ __interrupt void port2(void) {
 	}
 
 	P2IFG &= P2_IN_PORTS; //清除标志位
-//	_EINT();
 
 }
 
-//#pragma vector = ADC10_VECTOR
-//void adc10_interrupt(void){
-//	ADC10CTL0 &= ~ENC;
-//	while(ADC10CTL1&BUSY);
-//	ADC10CTL0 = ENC + ADC10SC;
-//	ADC10SA = (uint)adc10_data;
-//
-//
-//}
-
-//void init_signal_generator(void) {
-//	func_now = signal_func_map[0];
-//	//初始产生正弦波
-//}
 
 void init_vars() {
 	curr_signal_type = 0;
@@ -186,18 +170,6 @@ void init_port_interrupt(void) {
 	P2IFG &= ~P2_INTERRUPT; //清除标志位
 }
 
-//void test_port() {
-//	_DINT();
-//	init_port_io();
-//	P1OUT = 0x00;
-//	while (1) {
-//		P1OUT = 0xff;
-//		P1OUT = 0x00;
-//		delay_ms(1000);
-//		P1OUT = 0xff;
-//		delay_ms(1000);
-//	}
-//}
 
 void main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
@@ -207,7 +179,7 @@ void main(void) {
 	init_DCO();
 	init_timer_A0();
 	init_port_interrupt();
-//	test_port();
+
 	_bis_SR_register(GIE);
 	P1OUT = 0x00;
 	while (1) {
