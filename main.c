@@ -193,7 +193,7 @@ void init_ADC10(void) {
 	ADC10CTL1 |= SHS_0;
 	ADC10CTL1 |= ADC10SSEL_3;//SMCLK 16M
 	ADC10CTL1 &= ~ADC10DF; // straght binary format
-	ADC10CTL1 |= CONSEQ_0; // Single channel single convertion
+	ADC10CTL1 |= CONSEQ_2; // Single channel single convertion
 
 	ADC10AE0 = ADC10_IN_PORT;
 
@@ -203,7 +203,7 @@ void init_ADC10(void) {
 					  //as soon as the prior conversion is completed
 	ADC10CTL0 &= ~REFOUT;			          // diasable refout to p1.3 p1.4
 	ADC10CTL0 |= ADC10ON; //enable adc
-//	ADC10CTL0 |= ENC + ADC10SC;  //start repeated convertion
+	ADC10CTL0 |= ENC + ADC10SC;  //start repeated convertion
 }
 
 
@@ -223,11 +223,6 @@ void main(void) {
 	while (1) {
 		_NOP();
 		if(ADC10CTL1&ADC10BUSY)continue;
-		ADC10CTL0 |= ENC;
-		ADC10CTL0 |= ADC10SC;
-		__delay_cycles(2);
-		ADC10CTL0 &= ~ADC10SC;
-		__delay_cycles(20);
 		int adc_data = ADC10MEM;
 		duty_circle = (adc_data >> 3) + 50;
 
