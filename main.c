@@ -99,7 +99,6 @@ __interrupt void port2(void) {
 		if (curr_signal_type >= 3) {
 			curr_signal_type = 0;
 		}
-//		point_now = 0;
 	}
 	if (test_key & BIT1) {
 		//调节频率增加
@@ -108,9 +107,6 @@ __interrupt void port2(void) {
 			ccr0_idx = 0;
 		}
 		tccr0_now = ccr0_table[ccr0_idx];
-
-		TA0CCR0 = tccr0_now;
-
 	}
 	if (test_key& BIT2) {
 		//调节频率减小
@@ -120,7 +116,6 @@ __interrupt void port2(void) {
 		}
 
 		tccr0_now = ccr0_table[ccr0_idx];
-
 	}
 
 	P2IFG &= P2_IN_PORTS; //清除标志位
