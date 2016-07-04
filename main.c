@@ -182,9 +182,6 @@ void main(void) {
 	_bis_SR_register(GIE);
 	P1OUT = 0x00;
 	while (1) {
-//		P1OUT = 0xf0;
-//		LPM0;
-//		__delay_cycles(500);
+
 	}
-//	return 0;
 }
