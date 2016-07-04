@@ -203,7 +203,6 @@ void init_ADC10(void) {
 					  //as soon as the prior conversion is completed
 	ADC10CTL0 &= ~REFOUT;			          // diasable refout to p1.3 p1.4
 	ADC10CTL0 |= ADC10ON; //enable adc
-//	ADC10CTL0 |= ENC + ADC10SC;  //start repeated convertion
 }
 
 
@@ -221,7 +220,7 @@ void main(void) {
 	_bis_SR_register(GIE);
 
 	while (1) {
-		ADC10 &= ~ENC //关闭采样使能
+		ADC10CTL0 &= ~ENC; //关闭采样使能
 		if(ADC10CTL1&ADC10BUSY)continue;
 		ADC10CTL0 |= ENC + ADC10SC;
 		__delay_cycles(20);
