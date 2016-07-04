@@ -232,8 +232,12 @@ void main(void) {
 	_bis_SR_register(GIE);
 
 	while (1) {
+		_NOP();
 		if(ADC10CTL1&ADC10BUSY)continue;
-		ADC10CTL0 |= ENC + ADC10SC
+		ADC10CTL0 |= ENC
+		ADC10CTL0 |= ADC10SC
+		__delay_circles(2)
+		ADC10CTL0 &= ~ADC10SC
 		__delay_cycles(20)
 		int adc_data = ADC10MEM;
 		duty_delay = (adc_data >> 3) + 50
