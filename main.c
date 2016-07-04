@@ -147,7 +147,7 @@ void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
 
-	ccr0_idx = 50;
+	ccr0_idx = 0;
 	tccr0_now = ccr0_table[ccr0_idx]; //
 
 }
@@ -189,25 +189,6 @@ void init_port_interrupt(void) {
 	P2IES |= P2_INTERRUPT; //置1，下降沿触发
 	P2IE |= P2_INTERRUPT;  //中断使能
 	P2IFG &= ~P2_INTERRUPT; //清除标志位
-}
-
-void init_ADC10(void){
-	ADC10CTL0 |= ADC10IE;
-	ADC10DTC1  = 1;//DTC enable for interrupt
-	ADC10DTC0 &= ~ADC10CT; //non continous mode
-
-	ADC10CTL0 |= ADC10ON + REFON + REF2_5V + SREF_1 + ADC10SHT_3 + ADC10IE;
-
-	ADC10CTL1 |= ADC10SSEL_3 + ADC10DIV_7;//SMCLK source and DIV/8 2MHz
-	ADC10CTL1 &= ~ADC10DF; //straght binary format
-	ADC10CTL1 |= SHS_0;
-	ADC10CTL1 |= CONSEQ_0;
-
-	ADC10CTL1 |= INCH_12;
-	ADC10AE0   = 0x00;//disable A0-7
-//	ADC10AE1  |= BIT4;
-
-//	ADC10CTL0 |= ENC;
 }
 
 //void test_port() {
