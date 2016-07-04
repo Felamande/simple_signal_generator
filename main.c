@@ -222,7 +222,7 @@ void main(void) {
 
 	while (1) {
 		_NOP();
-		if(ADC10CTL1&ADC10BUSY)continue;
+		while(ADC10CTL1&ADC10BUSY);
 		int adc_data = ADC10MEM;
 		duty_circle = (adc_data >> 3) + 50;
 
