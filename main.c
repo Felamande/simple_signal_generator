@@ -202,7 +202,7 @@ void init_ADC10(void) {
 
 	ADC10CTL1 |= INCH_4; //A4 channel for convertion, P1.4 in
 	ADC10CTL1 |= SHS_0;
-	ADC10CTL1 |= ADC10SSEL_0; // MCLK/8 source and DIV/8 -> 125KHz
+	ADC10CTL1 |= ADC10SSEL_0 + ADC10DIV_7; // MCLK/8 source and DIV/8 -> 125KHz
 	ADC10CTL1 &= ~ADC10DF; // straght binary format
 	ADC10CTL1 |= CONSEQ_2; // repeat-Single-channel-mode
 
