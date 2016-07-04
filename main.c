@@ -221,15 +221,11 @@ void main(void) {
 	_bis_SR_register(GIE);
 
 	while (1) {
-		_NOP();
+		ADC10 &= ~ENC //关闭采样使能
 		if(ADC10CTL1&ADC10BUSY)continue;
-		ADC10CTL0 |= ENC;
-		ADC10CTL0 |= ADC10SC;
-		__delay_cycles(1);
-		ADC10CTL0 &= ~ADC10SC;
+		ADC10CTL0 |= ENC + ADC10SC;
 		__delay_cycles(20);
 		int adc_data = ADC10MEM;
 		duty_circle = (adc_data >> 3) + 50;
-
 	}
 }
