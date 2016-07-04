@@ -225,7 +225,7 @@ void main(void) {
 		if(ADC10CTL1&ADC10BUSY)continue;
 		ADC10CTL0 |= ENC;
 		ADC10CTL0 |= ADC10SC;
-		__delay_cycles(2);
+		__delay_cycles(1);
 		ADC10CTL0 &= ~ADC10SC;
 		__delay_cycles(20);
 		int adc_data = ADC10MEM;
