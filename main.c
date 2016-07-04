@@ -14,7 +14,6 @@
 #define uchar                  unsigned char
 #define uint                   unsigned int
 
-//long signal_type_incr;
 uint  curr_signal_type;
 int   tccr0_now;
 uint  ccr0_idx;
