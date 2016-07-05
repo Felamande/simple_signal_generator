@@ -27,7 +27,7 @@ uint   curr_signal_type;
 int    tccr0_now;
 uint   ccr0_idx;
 uchar  point_now;
-int    p1_push_key;
+int    push_key;
 int    duty_circle;
 
 const int ccr0_table[MAX_FREQ_STEPS] = { 16000, 8000, 5333, 4000, 3200, 2666,
@@ -71,7 +71,7 @@ const uchar tria_data[TOTAL_SAMPLING_POINTS] = { 0, 2, 5, 7, 10, 12, 15, 17, 20,
 
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void timer_A0(void) {
-//	P1OUT  |= (P1OUT^BIT6)&BIT6
+
 	if (point_now >= TOTAL_SAMPLING_POINTS) {
 		point_now = 0;
 	}
@@ -109,23 +109,23 @@ __interrupt void port1(void) {
 	//消除抖动，延迟0.1s
 	delay_ms(100);
 
-	p1_push_key = P1IFG;
+	push_key = P1IFG;
 
-	if (p1_push_key & SWITCH_SIG_TYPE) {
+	if (push_key & SWITCH_SIG_TYPE) {
 		//调节波形
 		curr_signal_type++;
 		if (curr_signal_type >= 3) {
 			curr_signal_type = 0;
 		}
 //		point_now = 0;
-	} else if (p1_push_key & ADD_FREQ) {
+	} else if (push_key & ADD_FREQ) {
 		//调节频率增加
 		ccr0_idx++;
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
 			ccr0_idx = 0;
 		}
 		tccr0_now = ccr0_table[ccr0_idx];
-	} else if (p1_push_key & SUB_FREQ) {
+	} else if (push_key & SUB_FREQ) {
 		//调节频率减小
 		ccr0_idx--;
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
@@ -230,9 +230,9 @@ void main(void) {
 		int adc_data = ADC10MEM;    //读取数据
 		duty_circle = (adc_data >> 3) + 40; //占空比限制在 40(20%)~168(84%)之间
 		//采集到的数据是0~1023
-		//右移三位就是0~128
-		//加40就是40~168
+		//右移三位就是0~127
+		//加40就是40~167
 		//总点数是200点
-		//占空比就是40/200=20% ~ 168/200=84% 之间
+		//占空比就是40/200=20% ~ 167/200=84% 之间
 	}
 }
