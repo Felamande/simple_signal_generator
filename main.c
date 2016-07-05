@@ -148,7 +148,7 @@ void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
 
-	ccr0_idx = 50;
+	ccr0_idx = 0;
 	tccr0_now = ccr0_table[ccr0_idx];
 
 	duty_circle = 100;
