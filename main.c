@@ -208,7 +208,14 @@ void init_ADC10(void) {
 	ADC10CTL0 |= ADC10ON; //enable adc
 }
 
-
+void test_dac(void){
+	TA0CCTL0 &= ~CCIE;
+	uchar data = 0xff;
+	while(1){
+		P2OUT = data;
+		data--;
+	}
+}
 
 void main(void) {
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
@@ -217,6 +224,7 @@ void main(void) {
 	init_port_io();
 	init_port_interrupt();
 	init_DCO();
+	//test_dac()
 	init_timer_A0();
 	init_ADC10();
 
