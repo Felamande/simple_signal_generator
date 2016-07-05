@@ -1,16 +1,19 @@
 #include <msp430.h>
-
+#define SWITCH_SIG_TYPE        (BIT0)
+#define ADD_FREQ               (BIT1)
+#define SUB_FREQ               (BIT2)
 #define ADC10_IN_PORT          (BIT4)
-#define P1_IN_PORTS           ~(BIT0 + BIT1 + BIT2 + ADC10_IN_PORT) //0:switch wave, 1:add freq, 2:sub freq, 4:adc10 in
-#define P1_OUT_PORTS           (BIT3)      //3:DAC WR
-#define P1_INTERRUPT           (BIT0 + BIT1 + BIT2)
+#define DAC_WR                 (BIT3)
+#define P1_IN_PORTS           ~(SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ + ADC10_IN_PORT) //0:switch wave, 1:add freq, 2:sub freq, 4:adc10 in
+#define P1_OUT_PORTS           DAC_WR      //3:DAC WR
+#define P1_INTERRUPT           (SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ)
 #define P2_OUT_PORTS           (0xff) //DAC data in
 
 #define TOTAL_SAMPLING_POINTS  200
 #define MAX_FREQ_STEPS         100
 
-#define ENABLE_WR_PORT         P1OUT &= ~BIT3 //WR->0
-#define DISABLE_WR_PORT        P1OUT |= BIT3  //WR->1
+#define ENABLE_WR_PORT         P1OUT &= ~DAC_WR //WR->0
+#define DISABLE_WR_PORT        P1OUT |= DAC_WR  //WR->1
 #define write_dac(data)        P2OUT = data //write to DAC
 
 #define CPU_FREQ               ((double)16000000) //CPU frequency set to 16M(CALBC_16MHZ)
@@ -20,12 +23,12 @@
 #define uchar                  unsigned char
 #define uint                   unsigned int
 
-uint curr_signal_type;
-int tccr0_now;
-uint ccr0_idx;
-uchar point_now;
-int p1_push_key;
-int duty_circle;
+uint   curr_signal_type;
+int    tccr0_now;
+uint   ccr0_idx;
+uchar  point_now;
+int    p1_push_key;
+int    duty_circle;
 
 const int ccr0_table[MAX_FREQ_STEPS] = { 16000, 8000, 5333, 4000, 3200, 2666,
 		2285, 2000, 1777, 1600, 1454, 1333, 1230, 1142, 1066, 1000, 941, 888,
@@ -73,7 +76,7 @@ __interrupt void timer_A0(void) {
 		point_now = 0;
 	}
 
-	switch (curr_signal_type) {//genre
+	switch (curr_signal_type) {
 	case 0:
 		//sin;
 		write_dac(sin_data[point_now]);
@@ -108,21 +111,21 @@ __interrupt void port1(void) {
 
 	p1_push_key = P1IFG;
 
-	if (p1_push_key & BIT0) {
+	if (p1_push_key & SWITCH_SIG_TYPE) {
 		//调节波形
 		curr_signal_type++;
 		if (curr_signal_type >= 3) {
 			curr_signal_type = 0;
 		}
 //		point_now = 0;
-	} else if (p1_push_key & BIT1) {
+	} else if (p1_push_key & ADD_FREQ) {
 		//调节频率增加
 		ccr0_idx++;
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
 			ccr0_idx = 0;
 		}
 		tccr0_now = ccr0_table[ccr0_idx];
-	} else if (p1_push_key & BIT2) {
+	} else if (p1_push_key & SUB_FREQ) {
 		//调节频率减小
 		ccr0_idx--;
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
@@ -169,7 +172,7 @@ void init_timer_A0(void) {
 
 void init_port_io(void) {
 	P2DIR = P2_OUT_PORTS; //P2 11111111b all out
-	P2REN = 0x00; //disable pull/down resistor
+	P2REN = 0x00; //disable pull up/down resistor
 	P2SEL = 0x00; //io function is selected
 	P2SEL2 = 0x00;
 
@@ -190,7 +193,7 @@ void init_port_interrupt(void) {
 void init_ADC10(void) {
 
 	ADC10CTL1 |= INCH_4; //A4 channel for convertion, P1.4 in
-	ADC10CTL1 |= SHS_0;
+	ADC10CTL1 |= SHS_0; //Sample-and-hold source select ADC10SC
 	ADC10CTL1 |= ADC10SSEL_3;//SMCLK 16M
 	ADC10CTL1 &= ~ADC10DF; // straght binary format
 	ADC10CTL1 |= CONSEQ_0; // Single channel single convertion
@@ -220,11 +223,16 @@ void main(void) {
 	_bis_SR_register(GIE);
 
 	while (1) {
-		ADC10CTL0 &= ~ENC; //关闭采样使能
-		while(ADC10CTL1&ADC10BUSY);
-		ADC10CTL0 |= ENC + ADC10SC;
-		while(ADC10CTL1&ADC10BUSY);
-		int adc_data = ADC10MEM;
-		duty_circle = (adc_data >> 3) + 50;
+		ADC10CTL0 &= ~ENC;          //关闭采样使能
+		while(ADC10CTL1&ADC10BUSY); //检测是否忙
+		ADC10CTL0 |= ENC + ADC10SC; //打开采样使能，开始转换
+		while(ADC10CTL1&ADC10BUSY); //检测是否忙
+		int adc_data = ADC10MEM;    //读取数据
+		duty_circle = (adc_data >> 3) + 40; //占空比限制在 40(20%)~168(84%)之间
+		//采集到的数据是0~1023
+		//右移三位就是0~128
+		//加40就是40~168
+		//总点数是200点
+		//占空比就是40/200=20% ~ 168/200=84% 之间
 	}
 }
