@@ -215,7 +215,7 @@ void main(void) {
 	init_DCO();
 	init_timer_A0();
 	init_port_interrupt();
-//	init_ADC10();
+	init_ADC10();
 
 	_bis_SR_register(GIE);
 
