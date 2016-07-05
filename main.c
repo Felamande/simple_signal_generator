@@ -23,12 +23,12 @@
 #define uchar                  unsigned char
 #define uint                   unsigned int
 
-uint   curr_signal_type;
-int    tccr0_now;
-uint   ccr0_idx;
-uchar  point_now;
-int    push_key;
-int    duty_circle;
+uint curr_signal_type;
+int tccr0_now;
+uint ccr0_idx;
+uchar point_now;
+int push_key;
+int duty_circle;
 
 const int ccr0_table[MAX_FREQ_STEPS] = { 16000, 8000, 5333, 4000, 3200, 2666,
 		2285, 2000, 1777, 1600, 1454, 1333, 1230, 1142, 1066, 1000, 941, 888,
@@ -54,20 +54,20 @@ const uchar sin_data[TOTAL_SAMPLING_POINTS] = { 127, 131, 135, 139, 143, 147,
 		58, 62, 65, 69, 72, 76, 80, 84, 87, 91, 95, 99, 103, 107, 111, 115, 119,
 		123, 127 };
 
-const uchar tria_data[TOTAL_SAMPLING_POINTS] = { 0, 2, 5, 7, 10, 12, 15, 17, 20,
-		22, 25, 28, 30, 33, 35, 38, 40, 43, 45, 48, 51, 53, 56, 58, 61, 63, 66,
-		68, 71, 73, 76, 79, 81, 84, 86, 89, 91, 94, 96, 99, 102, 104, 107, 109,
-		112, 114, 117, 119, 122, 124, 127, 130, 132, 135, 137, 140, 142, 145,
-		147, 150, 153, 155, 158, 160, 163, 165, 168, 170, 173, 175, 178, 181,
-		183, 186, 188, 191, 193, 196, 198, 201, 204, 206, 209, 211, 214, 216,
-		219, 221, 224, 226, 229, 232, 234, 237, 239, 242, 244, 247, 249, 252,
-		252, 249, 247, 244, 242, 239, 237, 234, 232, 229, 226, 224, 221, 219,
-		216, 214, 211, 209, 206, 204, 201, 198, 196, 193, 191, 188, 186, 183,
-		181, 178, 175, 173, 170, 168, 165, 163, 160, 158, 155, 153, 150, 147,
-		145, 142, 140, 137, 135, 132, 130, 127, 124, 122, 119, 117, 114, 112,
-		109, 107, 104, 102, 99, 96, 94, 91, 89, 86, 84, 81, 79, 76, 73, 71, 68,
-		66, 63, 61, 58, 56, 53, 51, 48, 45, 43, 40, 38, 35, 33, 30, 28, 25, 22,
-		20, 17, 15, 12, 10, 7, 5, 2, 0 };
+const uchar tria_data[TOTAL_SAMPLING_POINTS] = { 0, 2, 4, 6, 8, 10, 12, 14, 16,
+		18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52,
+		54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88,
+		90, 92, 94, 96, 98, 100, 102, 104, 106, 108, 110, 112, 114, 116, 118,
+		120, 122, 124, 126, 128, 130, 132, 134, 136, 138, 140, 142, 144, 146,
+		148, 150, 152, 154, 156, 158, 160, 162, 164, 166, 168, 170, 172, 174,
+		176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198, 198, 196,
+		194, 192, 190, 188, 186, 184, 182, 180, 178, 176, 174, 172, 170, 168,
+		166, 164, 162, 160, 158, 156, 154, 152, 150, 148, 146, 144, 142, 140,
+		138, 136, 134, 132, 130, 128, 126, 124, 122, 120, 118, 116, 114, 112,
+		110, 108, 106, 104, 102, 100, 98, 96, 94, 92, 90, 88, 86, 84, 82, 80,
+		78, 76, 74, 72, 70, 68, 66, 64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44,
+		42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8,
+		6, 4, 2, 0 };
 
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void timer_A0(void) {
@@ -194,7 +194,7 @@ void init_ADC10(void) {
 
 	ADC10CTL1 |= INCH_4; //A4 channel for convertion, P1.4 in
 	ADC10CTL1 |= SHS_0; //Sample-and-hold source select ADC10SC
-	ADC10CTL1 |= ADC10SSEL_3;//SMCLK 16M
+	ADC10CTL1 |= ADC10SSEL_3; //SMCLK 16M
 	ADC10CTL1 &= ~ADC10DF; // straght binary format
 	ADC10CTL1 |= CONSEQ_0; // Single channel single convertion
 
@@ -204,14 +204,14 @@ void init_ADC10(void) {
 	ADC10CTL0 |= SREF_1 + ADC10SHT_0 + REF2_5V + REFON; //V+ = 2.5V, V- = Vss = 0
 	ADC10CTL0 |= MSC; //further sample and conversions are performed automatically
 					  //as soon as the prior conversion is completed
-	ADC10CTL0 &= ~REFOUT;// diasable refout to p1.3 p1.4
+	ADC10CTL0 &= ~REFOUT;					  // diasable refout to p1.3 p1.4
 	ADC10CTL0 |= ADC10ON; //enable adc
 }
 
-void test_dac(void){
+void test_dac(void) {
 	TA0CCTL0 &= ~CCIE;
 	uchar data = 0xff;
-	while(1){
+	while (1) {
 		P2OUT = data;
 		data--;
 	}
@@ -232,9 +232,11 @@ void main(void) {
 
 	while (1) {
 		ADC10CTL0 &= ~ENC;          //关闭采样使能
-		while(ADC10CTL1&ADC10BUSY); //检测是否忙
+		while (ADC10CTL1 & ADC10BUSY)
+			; //检测是否忙
 		ADC10CTL0 |= ENC + ADC10SC; //打开采样使能，开始转换
-		while(ADC10CTL1&ADC10BUSY); //检测是否忙
+		while (ADC10CTL1 & ADC10BUSY)
+			; //检测是否忙
 		int adc_data = ADC10MEM;    //读取数据
 		duty_circle = (adc_data >> 3) + 40; //占空比限制在 40(20%)~168(84%)之间
 		//采集到的数据是0~1023
