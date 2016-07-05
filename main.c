@@ -141,7 +141,7 @@ void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
 
-	ccr0_idx = 0;
+	ccr0_idx = 50;
 	tccr0_now = ccr0_table[ccr0_idx];
 
 	duty_circle = 100;
@@ -195,13 +195,13 @@ void init_ADC10(void) {
 	ADC10CTL1 &= ~ADC10DF; // straght binary format
 	ADC10CTL1 |= CONSEQ_0; // Single channel single convertion
 
-	ADC10AE0 = ADC10_IN_PORT;
+	ADC10AE0 = ADC10_IN_PORT; //P1.4 in
 
 	ADC10CTL0 &= ~ADC10IE; //disable interrupt
 	ADC10CTL0 |= SREF_1 + ADC10SHT_0 + REF2_5V + REFON; //V+ = 2.5V, V- = Vss = 0
 	ADC10CTL0 |= MSC; //further sample and conversions are performed automatically
 					  //as soon as the prior conversion is completed
-	ADC10CTL0 &= ~REFOUT;			          // diasable refout to p1.3 p1.4
+	ADC10CTL0 &= ~REFOUT;// diasable refout to p1.3 p1.4
 	ADC10CTL0 |= ADC10ON; //enable adc
 }
 
@@ -212,9 +212,9 @@ void main(void) {
 
 	init_vars();
 	init_port_io();
+	init_port_interrupt();
 	init_DCO();
 	init_timer_A0();
-	init_port_interrupt();
 	init_ADC10();
 
 	_bis_SR_register(GIE);
