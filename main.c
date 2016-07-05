@@ -23,12 +23,12 @@
 #define uchar                  unsigned char
 #define uint                   unsigned int
 
-uint   curr_signal_type;
-int    tccr0_now;
-uint   ccr0_idx;
-uchar  point_now;
-int    push_key;
-int    duty_circle;
+uint curr_signal_type;
+int tccr0_now;
+uint ccr0_idx;
+uchar point_now;
+int push_key;
+int duty_circle;
 
 const long ccr0_table[MAX_FREQ_STEPS] = { 50000, 25000, 16666, 12500, 10000,
 		8333, 7142, 6250, 5555, 5000, 4545, 4166, 3846, 3571, 3333, 3125, 2941,
@@ -67,11 +67,11 @@ const uchar sin_data[TOTAL_SAMPLING_POINTS] = { 127, 140, 152, 165, 177, 188,
 		96, 83, 72, 61, 50, 40, 31, 23, 17, 11, 6, 3, 0, 0, 0, 1, 4, 8, 14, 20,
 		27, 36, 45, 55, 66, 77, 89, 102, 114, 127 };
 
-const uchar tria_data[TOTAL_SAMPLING_POINTS] = { 0, 8, 16, 24, 32, 41, 49, 57,
-		65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180,
-		189, 197, 205, 213, 222, 230, 238, 246, 255, 255, 246, 238, 230, 222,
-		213, 205, 197, 189, 180, 172, 164, 156, 148, 139, 131, 123, 115, 106,
-		98, 90, 82, 74, 65, 57, 49, 41, 32, 24, 16, 8, 0 };
+const uchar tria_data[TOTAL_SAMPLING_POINTS] = { 0, 8, 16, 24, 32, 40, 48, 56,
+		64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176,
+		184, 192, 200, 208, 216, 224, 232, 240, 248, 248, 240, 232, 224, 216,
+		208, 200, 192, 184, 176, 168, 160, 152, 144, 136, 128, 120, 112, 104,
+		96, 88, 80, 72, 64, 56, 48, 40, 32, 24, 16, 8, 0 };
 
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void timer_A0(void) {
