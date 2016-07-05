@@ -4,7 +4,7 @@
 #define SUB_FREQ               (BIT2)
 #define ADC10_IN_PORT          (BIT4)
 #define DAC_WR                 (BIT3)
-#define P1_IN_PORTS           ~(SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ + ADC10_IN_PORT) //0:switch wave, 1:add freq, 2:sub freq, 4:adc10 in
+#define P1_IN_PORTS           ~(SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ + ADC10_IN_PORT)
 #define P1_OUT_PORTS           DAC_WR      //3:DAC WR
 #define P1_INTERRUPT           (SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ)
 #define P2_OUT_PORTS           (0xff) //DAC data in
@@ -39,7 +39,7 @@ const int ccr0_table[MAX_FREQ_STEPS] = { 16000, 8000, 5333, 4000, 3200, 2666,
 		213, 210, 207, 205, 202, 200, 197, 195, 192, 190, 188, 186, 183, 181,
 		179, 177, 175, 173, 172, 170, 168, 166, 164, 163, 161, 160 };
 
-const unsigned char sin_data[TOTAL_SAMPLING_POINTS] = { 127, 131, 135, 139, 143,
+const uchar sin_data[TOTAL_SAMPLING_POINTS] = { 127, 131, 135, 139, 143,
 		147, 151, 155, 159, 162, 166, 170, 174, 177, 181, 185, 188, 192, 195,
 		198, 202, 205, 208, 211, 214, 217, 220, 222, 225, 227, 230, 232, 234,
 		236, 238, 240, 242, 244, 245, 246, 248, 249, 250, 251, 252, 252, 253,
