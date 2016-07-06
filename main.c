@@ -1,34 +1,34 @@
 #include <msp430.h>
-#define SWITCH_SIG_TYPE (BIT0)
-#define ADD_FREQ (BIT1)
-#define SUB_FREQ (BIT2)
-#define ADC10_IN_PORT (BIT4)
-#define DAC_WR (BIT3)
-#define P1_IN_PORTS ~(SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ + ADC10_IN_PORT)
-#define P1_OUT_PORTS DAC_WR // 3:DAC WR
-#define P1_INTERRUPT (SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ)
-#define P2_OUT_PORTS (0xff) // DAC data in
+#define SWITCH_SIG_TYPE                (BIT0)
+#define ADD_FREQ                       (BIT1)
+#define SUB_FREQ                       (BIT2)
+#define ADC10_IN_PORT                  (BIT4)
+#define DAC_WR                         (BIT3)
+#define P1_IN_PORTS                   ~(SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ + ADC10_IN_PORT)
+#define P1_OUT_PORTS                    DAC_WR // 3:DAC WR
+#define P1_INTERRUPT                   (SWITCH_SIG_TYPE + ADD_FREQ + SUB_FREQ)
+#define P2_OUT_PORTS                   (0xff) // DAC data in
 
-#define TOTAL_SAMPLING_POINTS 100
-#define MAX_FREQ_STEPS 400
+#define TOTAL_SAMPLING_POINTS           100
+#define MAX_FREQ_STEPS                  400
 
-#define ENABLE_WR_PORT P1OUT &= ~DAC_WR // WR->0
-#define DISABLE_WR_PORT P1OUT |= DAC_WR // WR->1
-#define write_dac(data) P2OUT = data    // write to DAC
+#define ENABLE_WR_PORT                  P1OUT &= ~DAC_WR // WR->0
+#define DISABLE_WR_PORT                 P1OUT |= DAC_WR // WR->1
+#define write_dac(data)                 P2OUT = data    // write to DAC
 
-#define CPU_FREQ ((double)16000000) // CPU frequency set to 16M(CALBC_16MHZ)
+#define CPU_FREQ    ((double)16000000) // CPU frequency set to 16M(CALBC_16MHZ)
 #define delay_us(x) __delay_cycles((long)(CPU_FREQ * (double)x / 1000000.0))
 #define delay_ms(x) __delay_cycles((long)(CPU_FREQ * (double)x / 1000.0))
 
 #define uchar unsigned char
-#define uint unsigned int
+#define uint  unsigned int
 
-uint curr_signal_type;
-int tccr0_now;
-uint ccr0_idx;
-uchar point_now;
-int push_key;
-int duty_circle;
+uint   curr_signal_type;
+int    tccr0_now;
+uint   ccr0_idx;
+uchar  point_now;
+int    push_key;
+int    duty_circle;
 
 const long ccr0_table[MAX_FREQ_STEPS] = { 32000, 16000, 10666, 8000, 6400, 5333,
 		4571, 4000, 3555, 3200, 2909, 2666, 2461, 2285, 2133, 2000, 1882, 1777,
