@@ -104,7 +104,7 @@ __interrupt void timer_A0(void) {
 	}
 
 	ENABLE_WR_PORT;
-	__delay_cycles(10);
+	__delay_cycles(4);
 	DISABLE_WR_PORT;
 
 	point_now++;
