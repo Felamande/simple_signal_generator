@@ -114,7 +114,7 @@ __interrupt void timer_A0(void) {
 	}
 
 	ENABLE_WR_PORT;
-	delay_us(1);
+	__delay_cycles(4);
 	DISABLE_WR_PORT;
 
 	point_now++;
@@ -146,7 +146,7 @@ __interrupt void port1(void) {
 		//调节频率减小
 		ccr0_idx--;
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
-			ccr0_idx = 99;
+			ccr0_idx = MAX_FREQ_STEPS -1;
 		}
 
 		tccr0_now = ccr0_table[ccr0_idx];
@@ -161,7 +161,7 @@ void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
 
-	ccr0_idx = 0;
+	ccr0_idx = 200;
 	tccr0_now = ccr0_table[ccr0_idx];
 
 	duty_circle = 100;
