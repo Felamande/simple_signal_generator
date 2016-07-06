@@ -58,7 +58,7 @@ const long ccr0_table[MAX_FREQ_STEPS] = { 32000, 16000, 10666, 8000, 6400, 5333,
 		93, 92, 92, 92, 91, 91, 91, 91, 90, 90, 90, 90, 89, 89, 89, 89, 88, 88,
 		88, 88, 87, 87, 87, 87, 86, 86, 86, 86, 86, 85, 85, 85, 85, 84, 84, 84,
 		84, 83, 83, 83, 83, 83, 82, 82, 82, 82, 82, 81, 81, 81, 81, 81, 80, 80,
-		80, 80, 80 };
+		80, 78, 75 };
 
 const uchar sin_data[TOTAL_SAMPLING_POINTS] = { 127, 135, 143, 151, 159, 167,
 		174, 182, 189, 196, 203, 209, 215, 221, 226, 231, 235, 239, 243, 246,
@@ -104,7 +104,7 @@ __interrupt void timer_A0(void) {
 	}
 
 	ENABLE_WR_PORT;
-	__delay_cycles(4);
+	__delay_cycles(10);
 	DISABLE_WR_PORT;
 
 	point_now++;
@@ -149,7 +149,7 @@ void init_vars() {
 	curr_signal_type = 0;
 	point_now = 0;
 
-	ccr0_idx = 300;
+	ccr0_idx = 398;
 	tccr0_now = ccr0_table[ccr0_idx];
 
 	duty_circle = 100;
