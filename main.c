@@ -228,7 +228,6 @@ void main(void) {
 	init_port_io();
 	init_port_interrupt();
 	init_DCO();
-	// test_dac()
 	init_timer_A0();
 	init_ADC10();
 
@@ -240,13 +239,13 @@ void main(void) {
 			;                         //检测是否忙
 		ADC10CTL0 |= ENC + ADC10SC; //打开采样使能，开始转换
 		while (ADC10CTL1 & ADC10BUSY)
-			;                                 //检测是否忙
+			;                               //检测是否忙
 		int adc_data = ADC10MEM;            //读取数据
 		duty_circle = (adc_data >> 4) + 20; //占空比限制在 20(20%)~83(83%)之间
 											//采集到的数据是0~1023
 											//右移三位就是0~63
-											//加40就是20~63
+											//加20就是20~83
 											//总点数是100点
-		                                    //占空比就是20/100=20% ~ 63/100=84% 之间
+		                                    //占空比就是20/100=20% ~ 83/100=83% 之间
 	}
 }
