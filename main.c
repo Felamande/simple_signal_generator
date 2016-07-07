@@ -189,7 +189,7 @@ void init_port_io(void) {
 void init_port_interrupt(void) {
 
 	P1IES |= P1_INTERRUPT;  //置1，下降沿触发
-	P1IE |= P1_INTERRUPT;   //中断使能
+	P1IE  |= P1_INTERRUPT;   //中断使能
 	P1IFG &= ~P1_INTERRUPT; //清除标志位
 }
 
@@ -201,7 +201,7 @@ void init_ADC10(void) {
 	ADC10CTL1 &= ~ADC10DF;    // straght binary format
 	ADC10CTL1 |= CONSEQ_0;    // Single channel single convertion
 
-	ADC10AE0 = ADC10_IN_PORT; // P1.4 in
+	ADC10AE0   = ADC10_IN_PORT; // P1.4 in
 
 	ADC10CTL0 &= ~ADC10IE;                              // disable interrupt
 	ADC10CTL0 |= SREF_1 + ADC10SHT_0 + REF2_5V + REFON; // V+ = 2.5V, V- = Vss = 0
