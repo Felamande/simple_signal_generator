@@ -104,7 +104,7 @@ __interrupt void timer_A0(void) {
 	}
 
 	ENABLE_WR_PORT;
-	delay_us(1);
+	__delay_cycles(4);
 	DISABLE_WR_PORT;
 
 	point_now++;
@@ -152,7 +152,7 @@ void init_vars() {
 	ccr0_idx = 398;
 	tccr0_now = ccr0_table[ccr0_idx];
 
-	duty_circle = 100;
+	duty_circle = TOTAL_SAMPLING_POINTS / 2;
 }
 
 void init_DCO() {
@@ -242,11 +242,11 @@ void main(void) {
 		while (ADC10CTL1 & ADC10BUSY)
 			;                                 //检测是否忙
 		int adc_data = ADC10MEM;            //读取数据
-		duty_circle = (adc_data >> 3) + 40; //占空比限制在 40(20%)~168(84%)之间
+		duty_circle = (adc_data >> 4) + 20; //占空比限制在 20(20%)~83(83%)之间
 											//采集到的数据是0~1023
-											//右移三位就是0~127
-											//加40就是40~167
-											//总点数是200点
-		//占空比就是40/200=20% ~ 167/200=84% 之间
+											//右移三位就是0~63
+											//加40就是20~63
+											//总点数是100点
+		                                    //占空比就是20/100=20% ~ 63/100=84% 之间
 	}
 }
