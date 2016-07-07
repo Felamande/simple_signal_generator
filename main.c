@@ -235,11 +235,9 @@ void main(void) {
 
 	while (1) {
 		ADC10CTL0 &= ~ENC; //关闭采样使能
-		while (ADC10CTL1 & ADC10BUSY)
-			;                         //检测是否忙
-		ADC10CTL0 |= ENC + ADC10SC; //打开采样使能，开始转换
-		while (ADC10CTL1 & ADC10BUSY)
-			;                               //检测是否忙
+		while (ADC10CTL1 & ADC10BUSY);      //检测是否忙
+		ADC10CTL0 |= ENC + ADC10SC;         //打开采样使能，开始转换
+		while (ADC10CTL1 & ADC10BUSY);      //检测是否忙
 		int adc_data = ADC10MEM;            //读取数据
 		duty_circle = (adc_data >> 4) + 20; //占空比限制在 20(20%)~83(83%)之间
 											//采集到的数据是0~1023
