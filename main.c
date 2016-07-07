@@ -30,7 +30,7 @@ uchar  point_now;
 int    push_key;
 int    duty_circle;
 
-const long ccr0_table[MAX_FREQ_STEPS] = { 32000, 16000, 10666, 8000, 6400, 5333,
+const long tccr0_table[MAX_FREQ_STEPS] = { 32000, 16000, 10666, 8000, 6400, 5333,
 		4571, 4000, 3555, 3200, 2909, 2666, 2461, 2285, 2133, 2000, 1882, 1777,
 		1684, 1600, 1523, 1454, 1391, 1333, 1280, 1230, 1185, 1142, 1103, 1066,
 		1032, 1000, 969, 941, 914, 888, 864, 842, 820, 800, 780, 761, 744, 727,
@@ -131,7 +131,7 @@ __interrupt void port1(void) {
 		if (ccr0_idx >= MAX_FREQ_STEPS) {
 			ccr0_idx = 0;
 		}
-		tccr0_now = ccr0_table[ccr0_idx];
+		tccr0_now = tccr0_table[ccr0_idx];
 	} else if (push_key & SUB_FREQ) {
 		//调节频率减小
 		ccr0_idx--;
@@ -139,7 +139,7 @@ __interrupt void port1(void) {
 			ccr0_idx = MAX_FREQ_STEPS - 1;
 		}
 
-		tccr0_now = ccr0_table[ccr0_idx];
+		tccr0_now = tccr0_table[ccr0_idx];
 	}
 
 	P1IFG &= ~P1_INTERRUPT; //清除标志位
@@ -150,7 +150,7 @@ void init_vars() {
 	point_now = 0;
 
 	ccr0_idx = 398;
-	tccr0_now = ccr0_table[ccr0_idx];
+	tccr0_now = tccr0_table[ccr0_idx];
 
 	duty_circle = TOTAL_SAMPLING_POINTS / 2;
 }
